@@ -12,28 +12,41 @@
   --text: #e2e8f0;
   --text2: #94a3b8;
   --radius: 12px;
-  --bottom-nav-h: 64px;
+  --bottom-nav-h: 56px;
+  /* iOS safe area（Dynamic Island / ホームバー対応） */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  /* iOS Safari でフォントを自動拡大させない */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  min-height: 100dvh; /* iOS Safari のアドレスバー伸縮に追従 */
   font-size: 15px;
+  /* タップ時のハイライトを全体で無効化 */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ─── Layout ──────────────────────────────────────────────────────────────── */
-#app { display: flex; flex-direction: column; min-height: 100vh; }
+#app { display: flex; flex-direction: column; min-height: 100dvh; }
 
 header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 0 24px;
+  /* Dynamic Island / ノッチ分を上に押し下げる */
+  padding-top: var(--safe-top);
   display: flex;
   align-items: center;
   gap: 16px;
-  height: 56px;
+  height: calc(56px + var(--safe-top));
   position: sticky;
   top: 0;
   z-index: 100;
@@ -48,11 +61,7 @@ header h1 {
 }
 
 /* ─── ヘッダーナビ（デスクトップ） ──────────────────────────────────────── */
-.top-nav {
-  display: flex;
-  gap: 4px;
-  margin-left: auto;
-}
+.top-nav { display: flex; gap: 4px; margin-left: auto; }
 .top-nav button {
   background: none;
   border: none;
@@ -61,7 +70,7 @@ header h1 {
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 .top-nav button:hover { background: var(--surface2); color: var(--text); }
 .top-nav button.active { background: var(--accent); color: #fff; }
@@ -73,11 +82,14 @@ header h1 {
   bottom: 0;
   left: 0;
   right: 0;
-  height: var(--bottom-nav-h);
+  /* ホームバー分だけ高さを確保 */
+  height: calc(var(--bottom-nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
   background: var(--surface);
   border-top: 1px solid var(--border);
   z-index: 200;
-  padding: 0 4px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 .bnav-btn {
   flex: 1;
@@ -85,17 +97,19 @@ header h1 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   background: none;
   border: none;
   color: var(--text2);
   cursor: pointer;
-  font-size: 0.65rem;
-  padding: 6px 0;
+  font-size: 0.62rem;
+  /* タップ領域を最低44pxに */
+  min-height: 44px;
   border-radius: 8px;
   transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
 }
-.bnav-btn .icon { font-size: 1.3rem; line-height: 1; }
+.bnav-btn .icon { font-size: 1.25rem; line-height: 1; }
 .bnav-btn.active { color: var(--accent); }
 
 main {
@@ -161,37 +175,54 @@ input, select, textarea {
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
-  padding: 9px 12px;
-  font-size: 0.95rem;
+  padding: 10px 12px;
+  /* 16px未満だとiOSが自動ズームするので16px固定 */
+  font-size: 16px;
   outline: none;
   transition: border-color 0.15s;
   width: 100%;
+  /* iOSのデフォルトスタイルを上書き */
+  -webkit-appearance: none;
+  appearance: none;
 }
 input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+/* selectの下向き矢印 */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
 select option { background: var(--surface2); }
 
 /* ─── Buttons ─────────────────────────────────────────────────────────────── */
 .btn {
-  padding: 9px 18px;
+  padding: 10px 18px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.15s;
   white-space: nowrap;
+  /* タップ領域を確保 */
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #4a6ef0; }
+.btn-primary:active { background: #4a6ef0; }
 .btn-block { width: 100%; }
 .btn-danger {
   background: transparent; color: var(--accent2);
-  border: 1px solid var(--accent2); padding: 4px 10px; font-size: 0.8rem;
+  border: 1px solid var(--accent2);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  min-height: 36px;
 }
-.btn-danger:hover { background: var(--accent2); color: #fff; }
+.btn-danger:active { background: var(--accent2); color: #fff; }
 .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-.btn-ghost:hover { background: var(--surface2); color: var(--text); }
-.btn-sm { padding: 5px 12px; font-size: 0.82rem; }
+.btn-sm { padding: 6px 12px; font-size: 0.82rem; min-height: 36px; }
 
 /* ─── Table ───────────────────────────────────────────────────────────────── */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
@@ -203,7 +234,6 @@ th {
 }
 td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: var(--surface2); }
 td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
 
 /* ─── Badge ───────────────────────────────────────────────────────────────── */
@@ -245,7 +275,8 @@ td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
 /* ─── Period selector ─────────────────────────────────────────────────────── */
 .period-select { display: flex; gap: 4px; }
 .period-btn {
-  padding: 4px 10px;
+  padding: 6px 10px;
+  min-height: 32px;
   border-radius: 6px;
   border: 1px solid var(--border);
   background: none;
@@ -253,27 +284,19 @@ td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
   cursor: pointer;
   font-size: 0.8rem;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 .period-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
 /* ─── 全種目グラフグリッド ────────────────────────────────────────────────── */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
+.charts-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
 .mini-chart-card {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px;
 }
-.mini-chart-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text2);
-  margin-bottom: 8px;
-}
+.mini-chart-title { font-size: 0.82rem; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
 .mini-chart-wrap { position: relative; height: 150px; }
 
 /* ─── Scrollbar ───────────────────────────────────────────────────────────── */
@@ -282,60 +305,57 @@ td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   モバイル（～600px）
+   モバイル（～600px）— iPhone 16 Plus (430pt) 含む
 ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
   /* ヘッダー */
-  header { padding: 0 16px; height: 50px; }
+  header { padding: 0 16px; padding-top: var(--safe-top); }
   header h1 { font-size: 1rem; }
   .top-nav { display: none; }
 
   /* ボトムナビ表示 */
   .bottom-nav { display: flex; }
+
+  /* コンテンツエリア：ボトムナビ＋ホームバー分を確保 */
   main {
     padding: 14px 12px;
-    padding-bottom: calc(var(--bottom-nav-h) + 14px);
+    padding-bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 14px);
   }
 
-  /* Toast をボトムナビの上に */
-  #toast { bottom: calc(var(--bottom-nav-h) + 12px); }
+  /* Toast をホームバーの上に */
+  #toast { bottom: calc(var(--bottom-nav-h) + var(--safe-bottom) + 12px); }
 
   /* カード */
   .card { padding: 14px 12px; margin-bottom: 12px; }
   .card-title { font-size: 0.9rem; gap: 6px; }
 
-  /* カード操作エリア：ボトムで全幅 */
-  .card-controls {
-    margin-left: 0;
-    width: 100%;
-    justify-content: flex-start;
-  }
+  /* カード操作エリア：全幅で折り返し */
+  .card-controls { margin-left: 0; width: 100%; justify-content: flex-start; }
 
   /* stat box */
   .grid-3 { gap: 8px; }
-  .stat-box { padding: 12px 6px; }
-  .stat-box .value { font-size: 1.4rem; }
-  .stat-box .label { font-size: 0.7rem; }
+  .stat-box { padding: 12px 4px; }
+  .stat-box .value { font-size: 1.3rem; }
+  .stat-box .label { font-size: 0.68rem; }
 
   /* フォーム */
   .form-row { gap: 8px; }
   .form-group { min-width: 0; }
-  /* 日付・月入力は自然な幅に */
-  .form-group.fg-date { flex: 0 0 auto; min-width: 140px; }
-  .form-group.fg-narrow { flex: 0 0 auto; min-width: 100px; }
+  .form-group.fg-date  { flex: 0 0 auto; min-width: 130px; }
+  .form-group.fg-narrow { flex: 0 0 auto; min-width: 90px; }
 
   /* 記録ボタン全幅 */
   .btn-record { width: 100%; margin-top: 4px; }
 
   /* グラフ高さ縮小 */
-  .chart-wrap { height: 190px; }
+  .chart-wrap { height: 200px; }
   .mini-chart-wrap { height: 130px; }
 
   /* 全種目グラフ：1列 */
   .charts-grid { grid-template-columns: 1fr; gap: 10px; }
 
-  /* テーブル：フォントサイズ縮小 */
-  th, td { padding: 8px 8px; font-size: 0.82rem; }
+  /* テーブル */
+  th, td { padding: 8px 8px; font-size: 0.8rem; }
 
   /* 体重フォーム */
   .wt-form-row { flex-direction: column; }
@@ -346,13 +366,8 @@ td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
   .settings-add-row .btn { width: 100%; }
 
   /* 履歴フィルター：縦並び */
-  .filter-row {
-    flex-direction: column;
-    align-items: stretch !important;
-    gap: 8px;
-  }
-  .filter-row select,
-  .filter-row input { width: 100% !important; }
+  .filter-row { flex-direction: column; align-items: stretch !important; gap: 8px; }
+  .filter-row select, .filter-row input { width: 100% !important; }
 }
 
 /* タブレット（601px〜900px） */
