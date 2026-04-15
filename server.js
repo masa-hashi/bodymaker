@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 // ─── DB セットアップ ──────────────────────────────────────────────────────────
-const db = new Database(path.join(__dirname, 'bodymaker.db'));
+const db = new Database(process.env.DB_PATH || path.join(__dirname, 'bodymaker.db'));
 db.pragma('journal_mode = WAL');
 db.exec(`
   CREATE TABLE IF NOT EXISTS exercises (
