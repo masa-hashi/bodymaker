@@ -1,0 +1,362 @@
+/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222636;
+  --border: #2e3248;
+  --accent: #5b7fff;
+  --accent2: #ff6b6b;
+  --green: #4ade80;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --radius: 12px;
+  --bottom-nav-h: 64px;
+}
+
+body {
+  font-family: 'Segoe UI', 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* ─── Layout ──────────────────────────────────────────────────────────────── */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ─── ヘッダーナビ（デスクトップ） ──────────────────────────────────────── */
+.top-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.top-nav button {
+  background: none;
+  border: none;
+  color: var(--text2);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s;
+}
+.top-nav button:hover { background: var(--surface2); color: var(--text); }
+.top-nav button.active { background: var(--accent); color: #fff; }
+
+/* ─── ボトムナビ（モバイル） ─────────────────────────────────────────────── */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--bottom-nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 0 4px;
+}
+.bnav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.65rem;
+  padding: 6px 0;
+  border-radius: 8px;
+  transition: color 0.15s;
+}
+.bnav-btn .icon { font-size: 1.3rem; line-height: 1; }
+.bnav-btn.active { color: var(--accent); }
+
+main {
+  flex: 1;
+  padding: 20px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ─── Pages ───────────────────────────────────────────────────────────────── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── カードタイトル内の操作エリア ──────────────────────────────────────── */
+.card-controls {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ─── Grid ────────────────────────────────────────────────────────────────── */
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+/* ─── Stat Boxes ──────────────────────────────────────────────────────────── */
+.stat-box {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.stat-box .value { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
+.stat-box .label { font-size: 0.75rem; color: var(--text2); margin-top: 4px; }
+
+/* ─── Forms ───────────────────────────────────────────────────────────────── */
+.form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 110px; }
+.form-group label { font-size: 0.8rem; color: var(--text2); font-weight: 500; }
+
+input, select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+select option { background: var(--surface2); }
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  padding: 9px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #4a6ef0; }
+.btn-block { width: 100%; }
+.btn-danger {
+  background: transparent; color: var(--accent2);
+  border: 1px solid var(--accent2); padding: 4px 10px; font-size: 0.8rem;
+}
+.btn-danger:hover { background: var(--accent2); color: #fff; }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-sm { padding: 5px 12px; font-size: 0.82rem; }
+
+/* ─── Table ───────────────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th {
+  color: var(--text2); font-weight: 500; text-align: left;
+  padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 0.82rem;
+  white-space: nowrap;
+}
+td { padding: 10px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+td.memo { white-space: normal; word-break: break-all; min-width: 80px; }
+
+/* ─── Badge ───────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  background: var(--surface2);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+/* ─── Chart wrapper ───────────────────────────────────────────────────────── */
+.chart-wrap { position: relative; height: 240px; }
+
+/* ─── Empty state ─────────────────────────────────────────────────────────── */
+.empty { text-align: center; color: var(--text2); padding: 32px 20px; font-size: 0.9rem; }
+
+/* ─── Toast ───────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--green);
+  color: #000;
+  padding: 10px 22px;
+  border-radius: 24px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.3s;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── Period selector ─────────────────────────────────────────────────────── */
+.period-select { display: flex; gap: 4px; }
+.period-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.period-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ─── 全種目グラフグリッド ────────────────────────────────────────────────── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.mini-chart-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+.mini-chart-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.mini-chart-wrap { position: relative; height: 150px; }
+
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   モバイル（～600px）
+═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  /* ヘッダー */
+  header { padding: 0 16px; height: 50px; }
+  header h1 { font-size: 1rem; }
+  .top-nav { display: none; }
+
+  /* ボトムナビ表示 */
+  .bottom-nav { display: flex; }
+  main {
+    padding: 14px 12px;
+    padding-bottom: calc(var(--bottom-nav-h) + 14px);
+  }
+
+  /* Toast をボトムナビの上に */
+  #toast { bottom: calc(var(--bottom-nav-h) + 12px); }
+
+  /* カード */
+  .card { padding: 14px 12px; margin-bottom: 12px; }
+  .card-title { font-size: 0.9rem; gap: 6px; }
+
+  /* カード操作エリア：ボトムで全幅 */
+  .card-controls {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* stat box */
+  .grid-3 { gap: 8px; }
+  .stat-box { padding: 12px 6px; }
+  .stat-box .value { font-size: 1.4rem; }
+  .stat-box .label { font-size: 0.7rem; }
+
+  /* フォーム */
+  .form-row { gap: 8px; }
+  .form-group { min-width: 0; }
+  /* 日付・月入力は自然な幅に */
+  .form-group.fg-date { flex: 0 0 auto; min-width: 140px; }
+  .form-group.fg-narrow { flex: 0 0 auto; min-width: 100px; }
+
+  /* 記録ボタン全幅 */
+  .btn-record { width: 100%; margin-top: 4px; }
+
+  /* グラフ高さ縮小 */
+  .chart-wrap { height: 190px; }
+  .mini-chart-wrap { height: 130px; }
+
+  /* 全種目グラフ：1列 */
+  .charts-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* テーブル：フォントサイズ縮小 */
+  th, td { padding: 8px 8px; font-size: 0.82rem; }
+
+  /* 体重フォーム */
+  .wt-form-row { flex-direction: column; }
+  .wt-form-row .btn { width: 100%; }
+
+  /* 設定フォーム */
+  .settings-add-row { flex-direction: column; }
+  .settings-add-row .btn { width: 100%; }
+
+  /* 履歴フィルター：縦並び */
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 8px;
+  }
+  .filter-row select,
+  .filter-row input { width: 100% !important; }
+}
+
+/* タブレット（601px〜900px） */
+@media (min-width: 601px) and (max-width: 900px) {
+  main { padding: 16px 20px; }
+  .charts-grid { grid-template-columns: repeat(2, 1fr); }
+}

@@ -1,0 +1,7 @@
+node_modules/
+bodymaker.db
+bodymaker.db-shm
+bodymaker.db-wal
+*.db-shm
+*.db-wal
+.claude/

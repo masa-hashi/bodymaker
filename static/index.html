@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Bodymaker</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>💪 Bodymaker</h1>
+    <nav class="top-nav">
+      <button onclick="showPage('dashboard')" id="nav-dashboard" class="active">ダッシュボード</button>
+      <button onclick="showPage('record')"    id="nav-record">記録する</button>
+      <button onclick="showPage('weight')"    id="nav-weight">体重</button>
+      <button onclick="showPage('settings')"  id="nav-settings">設定</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ─── ダッシュボード ─────────────────────────────────────────────── -->
+    <div id="page-dashboard" class="page active">
+      <div class="grid-3" style="margin-bottom:14px;">
+        <div class="stat-box">
+          <div class="value" id="stat-today">0</div>
+          <div class="label">今日の種目数</div>
+        </div>
+        <div class="stat-box">
+          <div class="value" id="stat-week">0</div>
+          <div class="label">今週のトレ日数</div>
+        </div>
+        <div class="stat-box">
+          <div class="value" id="stat-weight">—</div>
+          <div class="label">最新体重 (kg)</div>
+        </div>
+      </div>
+
+      <!-- 全種目グラフ -->
+      <div class="card">
+        <div class="card-title">
+          📊 全種目グラフ
+          <div class="card-controls">
+            <div class="period-select">
+              <button class="period-btn active" onclick="setAllChartsPeriod(30,this)">30日</button>
+              <button class="period-btn" onclick="setAllChartsPeriod(90,this)">90日</button>
+              <button class="period-btn" onclick="setAllChartsPeriod(180,this)">180日</button>
+            </div>
+          </div>
+        </div>
+        <div id="all-charts-grid" class="charts-grid"></div>
+        <div id="all-charts-empty" class="empty" style="display:none;">まだ記録がありません</div>
+      </div>
+
+      <!-- 体重グラフ -->
+      <div class="card">
+        <div class="card-title">
+          ⚖️ 体重推移
+          <div class="card-controls">
+            <div class="period-select">
+              <button class="period-btn active" onclick="setWtPeriod(30,this)">30日</button>
+              <button class="period-btn" onclick="setWtPeriod(90,this)">90日</button>
+              <button class="period-btn" onclick="setWtPeriod(180,this)">180日</button>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="weight-chart"></canvas></div>
+      </div>
+
+      <!-- 最近の記録 -->
+      <div class="card">
+        <div class="card-title">📅 最近のトレーニング</div>
+        <div id="recent-logs"></div>
+      </div>
+    </div>
+
+    <!-- ─── 記録する ───────────────────────────────────────────────────── -->
+    <div id="page-record" class="page">
+      <div class="card">
+        <div class="card-title">✍️ トレーニングを記録</div>
+        <div class="form-row">
+          <div class="form-group fg-date">
+            <label>日付</label>
+            <input type="date" id="log-date">
+          </div>
+          <div class="form-group" style="flex:1; min-width:140px;">
+            <label>エクササイズ</label>
+            <select id="log-exercise" onchange="onExerciseChange()"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group fg-narrow">
+            <label>セット数</label>
+            <input type="number" id="log-sets" min="1" max="99" placeholder="例: 3">
+          </div>
+          <div class="form-group fg-narrow" id="field-reps">
+            <label id="label-reps">回数</label>
+            <input type="number" id="log-reps" min="1" max="9999" placeholder="例: 10">
+          </div>
+          <div class="form-group fg-narrow" id="field-weight">
+            <label>重量 (kg)</label>
+            <input type="number" id="log-weight" min="0" step="0.5" placeholder="例: 60">
+          </div>
+          <div class="form-group" style="min-width:120px;">
+            <label>メモ</label>
+            <input type="text" id="log-memo" placeholder="自由記述">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-record" onclick="saveLog()">記録する</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          📋 履歴
+          <div class="card-controls filter-row">
+            <select id="filter-exercise" onchange="loadLogs()">
+              <option value="">全種目</option>
+            </select>
+            <input type="month" id="filter-month" onchange="loadLogs()">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th><th>種目</th><th>セット</th><th>回数/秒</th><th>重量</th><th>メモ</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="logs-tbody"></tbody>
+          </table>
+        </div>
+        <div id="logs-empty" class="empty" style="display:none;">記録がありません</div>
+      </div>
+    </div>
+
+    <!-- ─── 体重 ───────────────────────────────────────────────────────── -->
+    <div id="page-weight" class="page">
+      <div class="card">
+        <div class="card-title">⚖️ 体重を記録</div>
+        <div class="form-row wt-form-row">
+          <div class="form-group fg-date">
+            <label>日付</label>
+            <input type="date" id="wt-date">
+          </div>
+          <div class="form-group fg-narrow">
+            <label>体重 (kg)</label>
+            <input type="number" id="wt-value" min="20" max="300" step="0.1" placeholder="例: 70.5">
+          </div>
+          <div class="form-group" style="flex:0; align-self:flex-end;">
+            <button class="btn btn-primary" onclick="saveWeight()">記録する</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚖️ 体重推移グラフ</div>
+        <div class="chart-wrap"><canvas id="weight-chart2"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">📋 体重履歴</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>日付</th><th>体重 (kg)</th><th>前回差</th><th></th></tr></thead>
+            <tbody id="weight-tbody"></tbody>
+          </table>
+        </div>
+        <div id="weight-empty" class="empty" style="display:none;">記録がありません</div>
+      </div>
+    </div>
+
+    <!-- ─── 設定 ───────────────────────────────────────────────────────── -->
+    <div id="page-settings" class="page">
+      <div class="card">
+        <div class="card-title">🏋️ エクササイズ管理</div>
+        <div class="form-row settings-add-row">
+          <div class="form-group" style="min-width:140px;">
+            <label>種目名</label>
+            <input type="text" id="new-ex-name" placeholder="例: ダンベルカール">
+          </div>
+          <div class="form-group fg-narrow" style="min-width:120px;">
+            <label>単位</label>
+            <select id="new-ex-unit">
+              <option value="kg">重量 (kg)</option>
+              <option value="reps">回数のみ</option>
+              <option value="sec">秒数</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0; align-self:flex-end;">
+            <button class="btn btn-primary" onclick="addExercise()">追加</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>種目名</th><th>単位</th><th></th></tr></thead>
+            <tbody id="ex-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ─── ボトムナビ（モバイル） ──────────────────────────────────────── -->
+  <nav class="bottom-nav">
+    <button class="bnav-btn active" onclick="showPage('dashboard')" id="bnav-dashboard">
+      <span class="icon">🏠</span><span>ホーム</span>
+    </button>
+    <button class="bnav-btn" onclick="showPage('record')" id="bnav-record">
+      <span class="icon">✍️</span><span>記録</span>
+    </button>
+    <button class="bnav-btn" onclick="showPage('weight')" id="bnav-weight">
+      <span class="icon">⚖️</span><span>体重</span>
+    </button>
+    <button class="bnav-btn" onclick="showPage('settings')" id="bnav-settings">
+      <span class="icon">⚙️</span><span>設定</span>
+    </button>
+  </nav>
+</div>
+
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
