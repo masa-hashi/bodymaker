@@ -1,9 +1,10 @@
 const express = require('express');
 const Database = require('better-sqlite3');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 // ─── DB セットアップ ──────────────────────────────────────────────────────────
 const db = new Database(path.join(__dirname, 'bodymaker.db'));
@@ -48,7 +49,34 @@ db.exec(`
     ('ダンベルプレス', 'kg');
 `);
 
+// ─── Basic認証 ────────────────────────────────────────────────────────────────
+function basicAuth(req, res, next) {
+  const authUser = process.env.AUTH_USER;
+  const authPass = process.env.AUTH_PASS;
+
+  // 環境変数未設定時はローカル開発用にスキップ
+  if (!authUser || !authPass) return next();
+
+  const header = req.headers.authorization || '';
+  if (!header.startsWith('Basic ')) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Bodymaker"');
+    return res.status(401).send('認証が必要です');
+  }
+
+  const [user, pass] = Buffer.from(header.slice(6), 'base64').toString().split(':');
+  const ok =
+    user.length === authUser.length &&
+    pass?.length === authPass.length &&
+    crypto.timingSafeEqual(Buffer.from(user), Buffer.from(authUser)) &&
+    crypto.timingSafeEqual(Buffer.from(pass), Buffer.from(authPass));
+
+  if (ok) return next();
+  res.setHeader('WWW-Authenticate', 'Basic realm="Bodymaker"');
+  return res.status(401).send('認証が必要です');
+}
+
 // ─── ミドルウェア ─────────────────────────────────────────────────────────────
+app.use(basicAuth);
 app.use(express.json());
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
