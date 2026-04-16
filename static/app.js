@@ -2,9 +2,14 @@
 let exercises = [];
 let wtChart = null;
 let wtChart2 = null;
-let allChartInstances = [];  // 全種目グラフのインスタンス管理
+let allChartInstances = [];
 let allChartsPeriodDays = 30;
 let wtPeriodDays = 30;
+// 編集モーダル用キャッシュ
+let logCache = new Map();
+let weightCache = new Map();
+let editingType = null;
+let editingId = null;
 
 // ─── Utility ──────────────────────────────────────────────────────────────────
 const today = () => new Date().toISOString().slice(0, 10);
@@ -389,6 +394,10 @@ async function loadLogs() {
     return;
   }
   empty.style.display = 'none';
+
+  // キャッシュに保存（編集モーダルで使用）
+  logCache = new Map(logs.map(l => [l.id, l]));
+
   tbody.innerHTML = logs.map(l => `
     <tr>
       <td>${l.date}</td>
@@ -396,8 +405,11 @@ async function loadLogs() {
       <td>${l.sets ?? '—'}</td>
       <td>${formatReps(l)}</td>
       <td>${l.weight_kg != null ? l.weight_kg + ' kg' : '—'}</td>
-      <td style="color:var(--text2);font-size:0.85rem;">${l.memo || ''}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteLog(${l.id})">削除</button></td>
+      <td class="memo" style="color:var(--text2);font-size:0.85rem;">${l.memo || ''}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="openEditLog(${l.id})">編集</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteLog(${l.id})">削除</button>
+      </td>
     </tr>
   `).join('');
 
@@ -441,6 +453,8 @@ async function loadWeightPage() {
   } else {
     empty.style.display = 'none';
     const reversed = [...data].reverse();
+    // キャッシュに保存（編集モーダルで使用）
+    weightCache = new Map(data.map(w => [w.id, w]));
     tbody.innerHTML = reversed.map((w, i) => {
       const prev = reversed[i + 1];
       let diff = '';
@@ -453,7 +467,10 @@ async function loadWeightPage() {
         <td>${w.date}</td>
         <td><strong>${w.weight_kg} kg</strong></td>
         <td>${diff || '—'}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteWeight(${w.id})">削除</button></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="openEditWeight(${w.id})">編集</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteWeight(${w.id})">削除</button>
+        </td>
       </tr>`;
     }).join('');
   }
@@ -469,6 +486,98 @@ async function deleteWeight(id) {
   await api('DELETE', `/api/weight/${id}`);
   toast('削除しました');
   loadWeightPage();
+}
+
+// ─── 編集モーダル ─────────────────────────────────────────────────────────────
+function openEditLog(id) {
+  const log = logCache.get(id);
+  if (!log) return;
+
+  editingType = 'log';
+  editingId = id;
+
+  // 種目セレクトを構築
+  const sel = document.getElementById('edit-log-exercise');
+  sel.innerHTML = exercises.map(e =>
+    `<option value="${e.id}" data-unit="${e.unit}">${e.name}</option>`
+  ).join('');
+
+  document.getElementById('edit-log-date').value = log.date;
+  sel.value = log.exercise_id;
+  document.getElementById('edit-log-sets').value = log.sets ?? '';
+  document.getElementById('edit-log-reps').value = log.reps ?? '';
+  document.getElementById('edit-log-weight').value = log.weight_kg ?? '';
+  document.getElementById('edit-log-memo').value = log.memo ?? '';
+
+  onEditExerciseChange();
+
+  document.getElementById('edit-log-form').style.display = 'block';
+  document.getElementById('edit-weight-form').style.display = 'none';
+  document.getElementById('edit-modal-title').textContent = '✏️ トレーニングを編集';
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function openEditWeight(id) {
+  const w = weightCache.get(id);
+  if (!w) return;
+
+  editingType = 'weight';
+  editingId = id;
+
+  document.getElementById('edit-wt-date').value = w.date;
+  document.getElementById('edit-wt-value').value = w.weight_kg;
+
+  document.getElementById('edit-log-form').style.display = 'none';
+  document.getElementById('edit-weight-form').style.display = 'block';
+  document.getElementById('edit-modal-title').textContent = '✏️ 体重を編集';
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+  editingType = null;
+  editingId = null;
+}
+
+// オーバーレイ（背景）クリックで閉じる
+function onModalOverlayClick(e) {
+  if (e.target === document.getElementById('edit-modal')) closeEditModal();
+}
+
+function onEditExerciseChange() {
+  const sel = document.getElementById('edit-log-exercise');
+  const unit = sel.options[sel.selectedIndex]?.dataset.unit ?? 'kg';
+  document.getElementById('edit-label-reps').textContent = unit === 'sec' ? '秒数' : '回数';
+  document.getElementById('edit-log-reps').placeholder = unit === 'sec' ? '例: 60' : '例: 10';
+  document.getElementById('edit-field-weight').style.display = unit === 'kg' ? '' : 'none';
+}
+
+async function saveEdit() {
+  try {
+    if (editingType === 'log') {
+      const date = document.getElementById('edit-log-date').value;
+      const exercise_id = parseInt(document.getElementById('edit-log-exercise').value);
+      const sets = parseInt(document.getElementById('edit-log-sets').value) || null;
+      const reps = parseInt(document.getElementById('edit-log-reps').value) || null;
+      const weight_kg = parseFloat(document.getElementById('edit-log-weight').value) || null;
+      const memo = document.getElementById('edit-log-memo').value.trim() || null;
+      if (!date || !exercise_id) { toast('日付と種目は必須です'); return; }
+      await api('PUT', `/api/logs/${editingId}`, { date, exercise_id, sets, reps, weight_kg, memo });
+      closeEditModal();
+      toast('更新しました');
+      loadLogs();
+    } else if (editingType === 'weight') {
+      const date = document.getElementById('edit-wt-date').value;
+      const weight_kg = parseFloat(document.getElementById('edit-wt-value').value);
+      if (!date || isNaN(weight_kg)) { toast('日付と体重は必須です'); return; }
+      await api('PUT', `/api/weight/${editingId}`, { date, weight_kg });
+      closeEditModal();
+      toast('更新しました');
+      loadWeightPage();
+    }
+  } catch (e) {
+    toast(e.message);
+  }
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────────────

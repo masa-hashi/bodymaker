@@ -110,6 +110,22 @@ app.post('/api/logs', (req, res) => {
   res.status(201).json(row);
 });
 
+app.put('/api/logs/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { date, exercise_id, sets, reps, weight_kg, memo } = req.body;
+  if (!date || !exercise_id) return res.status(400).json({ detail: '日付と種目は必須です' });
+  db.prepare(
+    'UPDATE workout_logs SET date=?, exercise_id=?, sets=?, reps=?, weight_kg=?, memo=? WHERE id=?'
+  ).run(date, exercise_id, sets ?? null, reps ?? null, weight_kg ?? null, memo ?? null, id);
+  const row = db.prepare(`
+    SELECT wl.id, wl.date, wl.sets, wl.reps, wl.weight_kg, wl.memo,
+           e.id as exercise_id, e.name as exercise_name, e.unit
+    FROM workout_logs wl JOIN exercises e ON e.id = wl.exercise_id
+    WHERE wl.id = ?
+  `).get(id);
+  res.json(row);
+});
+
 app.delete('/api/logs/:id', (req, res) => {
   db.prepare('DELETE FROM workout_logs WHERE id = ?').run(parseInt(req.params.id));
   res.json({ ok: true });
@@ -134,6 +150,15 @@ app.post('/api/weight', (req, res) => {
   ).run(date, weight_kg);
   const row = db.prepare('SELECT * FROM weight_logs WHERE date = ?').get(date);
   res.status(201).json(row);
+});
+
+app.put('/api/weight/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { date, weight_kg } = req.body;
+  if (!date || weight_kg == null) return res.status(400).json({ detail: '日付と体重は必須です' });
+  db.prepare('UPDATE weight_logs SET date=?, weight_kg=? WHERE id=?').run(date, weight_kg, id);
+  const row = db.prepare('SELECT * FROM weight_logs WHERE id=?').get(id);
+  res.json(row);
 });
 
 app.delete('/api/weight/:id', (req, res) => {

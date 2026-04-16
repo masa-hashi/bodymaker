@@ -218,6 +218,64 @@
   </nav>
 </div>
 
+<!-- ─── 編集モーダル ────────────────────────────────────────────────────── -->
+<div id="edit-modal" class="modal-overlay" style="display:none;" onclick="onModalOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="edit-modal-title">✏️ 記録を編集</div>
+
+    <!-- トレーニングログ編集フォーム -->
+    <div id="edit-log-form">
+      <div class="form-row">
+        <div class="form-group fg-date">
+          <label>日付</label>
+          <input type="date" id="edit-log-date">
+        </div>
+        <div class="form-group" style="flex:1; min-width:140px;">
+          <label>エクササイズ</label>
+          <select id="edit-log-exercise" onchange="onEditExerciseChange()"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group fg-narrow">
+          <label>セット数</label>
+          <input type="number" id="edit-log-sets" min="1" max="99">
+        </div>
+        <div class="form-group fg-narrow" id="edit-field-reps">
+          <label id="edit-label-reps">回数</label>
+          <input type="number" id="edit-log-reps" min="1" max="9999">
+        </div>
+        <div class="form-group fg-narrow" id="edit-field-weight">
+          <label>重量 (kg)</label>
+          <input type="number" id="edit-log-weight" min="0" step="0.5">
+        </div>
+        <div class="form-group" style="min-width:120px;">
+          <label>メモ</label>
+          <input type="text" id="edit-log-memo">
+        </div>
+      </div>
+    </div>
+
+    <!-- 体重ログ編集フォーム -->
+    <div id="edit-weight-form" style="display:none;">
+      <div class="form-row">
+        <div class="form-group fg-date">
+          <label>日付</label>
+          <input type="date" id="edit-wt-date">
+        </div>
+        <div class="form-group fg-narrow">
+          <label>体重 (kg)</label>
+          <input type="number" id="edit-wt-value" min="20" max="300" step="0.1">
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEdit()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 <script src="/static/app.js"></script>
 </body>
